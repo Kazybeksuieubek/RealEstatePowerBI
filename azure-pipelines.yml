@@ -1,32 +1,106 @@
 trigger:
 - main
 
-pool:
-  vmImage: 'windows-latest'
+stages:
+- stage: Dev
+  displayName: 'Deploy to Dev'
+  jobs:
+  - job: DeployDev
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+    - task: PowerShell@2
+      inputs:
+        targetType: 'inline'
+        script: |
+          # Install Power BI PowerShell module
+          Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber
 
-steps:
-- task: PowerShell@2
-  inputs:
-    targetType: 'inline'
-    script: |
-      # Install Power BI PowerShell module
-      Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber
+          # Install MSAL PowerShell module for user authentication
+          Install-Module -Name MSAL.PS -Scope CurrentUser -Force
 
-      # Install MSAL PowerShell module for user authentication
-      Install-Module -Name MSAL.PS -Scope CurrentUser -Force
+          # Define your application credentials
+          $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
+          $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
+          $redirectUri = "https://localhost"
 
-      # Define your application credentials
-      $clientId = "<Your-Client-ID>"
-      $tenantId = "<Your-Tenant-ID>"
-      $redirectUri = "https://localhost"
+          # Use MSAL to acquire a token interactively
+          $authResult = Get-MsalToken -ClientId $clientId -TenantId $tenantId -RedirectUri $redirectUri -Scopes "https://analysis.windows.net/powerbi/api/.default" -Interactive
 
-      # Use MSAL to acquire a token interactively
-      $authResult = Get-MsalToken -ClientId $clientId -TenantId $tenantId -RedirectUri $redirectUri -Scopes "https://analysis.windows.net/powerbi/api/.default" -Interactive
+          # Connect to Power BI Service
+          Connect-PowerBIServiceAccount -AccessToken $authResult.AccessToken
 
-      # Connect to Power BI Service
-      Connect-PowerBIServiceAccount -AccessToken $authResult.AccessToken
+          # Deploy Power BI report to Dev
+          $workspaceId = "$(7af6f710-e8b3-4fd6-98a1-ad4844254733)"
+          $reportFilePath = "$(Build.SourcesDirectory)\RealEstateReportDev.pbix"
+          Import-PowerBIReport -WorkspaceId $workspaceId -Path $reportFilePath -Name "Real Estate Report Dev"
 
-      # Deploy Power BI report
-      $workspaceId = "<Your-Workspace-ID>"
-      $reportFilePath = "$(Build.SourcesDirectory)\YourReport.pbix"
-      Import-PowerBIReport -WorkspaceId $workspaceId -Path $reportFilePath -Name "Your Report Name"
+- stage: QA
+  displayName: 'Deploy to QA'
+  dependsOn: Dev
+  condition: succeeded()
+  jobs:
+  - job: DeployQA
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+    - task: PowerShell@2
+      inputs:
+        targetType: 'inline'
+        script: |
+          # Install Power BI PowerShell module
+          Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber
+
+          # Install MSAL PowerShell module for user authentication
+          Install-Module -Name MSAL.PS -Scope CurrentUser -Force
+
+          # Define your application credentials
+          $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
+          $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
+          $redirectUri = "https://localhost"
+
+          # Use MSAL to acquire a token interactively
+          $authResult = Get-MsalToken -ClientId $clientId -TenantId $tenantId -RedirectUri $redirectUri -Scopes "https://analysis.windows.net/powerbi/api/.default" -Interactive
+
+          # Connect to Power BI Service
+          Connect-PowerBIServiceAccount -AccessToken $authResult.AccessToken
+
+          # Deploy Power BI report to QA
+          $workspaceId = "$(8903b2fd-67f8-4191-b2c4-f9687ee3fd17)"
+          $reportFilePath = "$(Build.SourcesDirectory)\RealEstateReportQA.pbix"
+          Import-PowerBIReport -WorkspaceId $workspaceId -Path $reportFilePath -Name "Real Estate Report QA"
+
+- stage: Prod
+  displayName: 'Deploy to Prod'
+  dependsOn: QA
+  condition: succeeded()
+  jobs:
+  - job: DeployProd
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+    - task: PowerShell@2
+      inputs:
+        targetType: 'inline'
+        script: |
+          # Install Power BI PowerShell module
+          Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber
+
+          # Install MSAL PowerShell module for user authentication
+          Install-Module -Name MSAL.PS -Scope CurrentUser -Force
+
+          # Define your application credentials
+          $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
+          $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
+          $redirectUri = "https://localhost"
+
+          # Use MSAL to acquire a token interactively
+          $authResult = Get-MsalToken -ClientId $clientId -TenantId $tenantId -RedirectUri $redirectUri -Scopes "https://analysis.windows.net/powerbi/api/.default" -Interactive
+
+          # Connect to Power BI Service
+          Connect-PowerBIServiceAccount -AccessToken $authResult.AccessToken
+
+          # Deploy Power BI report to Prod
+          $workspaceId = "$(9e99227a-0de6-4073-b18c-e55f85246632)"
+          $reportFilePath = "$(Build.SourcesDirectory)\RealEstateReportProd.pbix"
+          Import-PowerBIReport -WorkspaceId $workspaceId -Path $reportFilePath -Name "Real Estate Report Prod"
