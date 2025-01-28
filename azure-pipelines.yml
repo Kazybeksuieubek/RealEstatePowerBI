@@ -6,6 +6,7 @@ stages:
   displayName: 'Deploy to Dev'
   jobs:
   - job: DeployDev
+    displayName: 'Deploy Report to Dev Workspace'
     pool:
       vmImage: 'windows-latest'
     steps:
@@ -13,27 +14,24 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          # Install Power BI PowerShell module
+          # Install Power BI PowerShell module if not already installed
           Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber
 
-          # Install MSAL PowerShell module for user authentication
-          Install-Module -Name MSAL.PS -Scope CurrentUser -Force
-
-          # Define your application credentials
-          $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
+          # Log in to Power BI Service
           $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
-          $redirectUri = "https://localhost"
+          $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
+          $clientSecret = "$(PowerBIClientSecret)"  # Stored as a secret variable in Azure DevOps
+          
+          Connect-PowerBIServiceAccount -ServicePrincipal -TenantId $tenantId -ClientId $clientId -ClientSecret $clientSecret
 
-          # Use MSAL to acquire a token interactively
-          $authResult = Get-MsalToken -ClientId $clientId -TenantId $tenantId -RedirectUri $redirectUri -Scopes "https://analysis.windows.net/powerbi/api/.default" -Interactive
+          # Deploy the report
+          $workspaceId = "7af6f710-e8b3-4fd6-98a1-ad4844254733"  # Dev Workspace ID
+          $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportDev.pbix"
+          $reportName = "Real Estate Report Dev"
 
-          # Connect to Power BI Service
-          Connect-PowerBIServiceAccount -AccessToken $authResult.AccessToken
-
-          # Deploy Power BI report to Dev
-          $workspaceId = "$(7af6f710-e8b3-4fd6-98a1-ad4844254733)"
-          $reportFilePath = "$(Build.SourcesDirectory)\RealEstateReportDev.pbix"
-          Import-PowerBIReport -WorkspaceId $workspaceId -Path $reportFilePath -Name "Real Estate Report Dev"
+          Write-Host "Deploying Power BI report..."
+          New-PowerBIReport -WorkspaceId $workspaceId -Path $reportPath -Name $reportName
+          Write-Host "Deployment to Dev completed successfully."
 
 - stage: QA
   displayName: 'Deploy to QA'
@@ -41,6 +39,7 @@ stages:
   condition: succeeded()
   jobs:
   - job: DeployQA
+    displayName: 'Deploy Report to QA Workspace'
     pool:
       vmImage: 'windows-latest'
     steps:
@@ -48,27 +47,24 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          # Install Power BI PowerShell module
+          # Install Power BI PowerShell module if not already installed
           Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber
 
-          # Install MSAL PowerShell module for user authentication
-          Install-Module -Name MSAL.PS -Scope CurrentUser -Force
-
-          # Define your application credentials
-          $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
+          # Log in to Power BI Service
           $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
-          $redirectUri = "https://localhost"
+          $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
+          $clientSecret = "$(PowerBIClientSecret)"  # Stored as a secret variable in Azure DevOps
 
-          # Use MSAL to acquire a token interactively
-          $authResult = Get-MsalToken -ClientId $clientId -TenantId $tenantId -RedirectUri $redirectUri -Scopes "https://analysis.windows.net/powerbi/api/.default" -Interactive
+          Connect-PowerBIServiceAccount -ServicePrincipal -TenantId $tenantId -ClientId $clientId -ClientSecret $clientSecret
 
-          # Connect to Power BI Service
-          Connect-PowerBIServiceAccount -AccessToken $authResult.AccessToken
+          # Deploy the report
+          $workspaceId = "8903b2fd-67f8-4191-b2c4-f9687ee3fd17"  # QA Workspace ID
+          $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportQA.pbix"
+          $reportName = "Real Estate Report QA"
 
-          # Deploy Power BI report to QA
-          $workspaceId = "$(8903b2fd-67f8-4191-b2c4-f9687ee3fd17)"
-          $reportFilePath = "$(Build.SourcesDirectory)\RealEstateReportQA.pbix"
-          Import-PowerBIReport -WorkspaceId $workspaceId -Path $reportFilePath -Name "Real Estate Report QA"
+          Write-Host "Deploying Power BI report..."
+          New-PowerBIReport -WorkspaceId $workspaceId -Path $reportPath -Name $reportName
+          Write-Host "Deployment to QA completed successfully."
 
 - stage: Prod
   displayName: 'Deploy to Prod'
@@ -76,6 +72,7 @@ stages:
   condition: succeeded()
   jobs:
   - job: DeployProd
+    displayName: 'Deploy Report to Prod Workspace'
     pool:
       vmImage: 'windows-latest'
     steps:
@@ -83,24 +80,21 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          # Install Power BI PowerShell module
+          # Install Power BI PowerShell module if not already installed
           Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber
 
-          # Install MSAL PowerShell module for user authentication
-          Install-Module -Name MSAL.PS -Scope CurrentUser -Force
-
-          # Define your application credentials
-          $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
+          # Log in to Power BI Service
           $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
-          $redirectUri = "https://localhost"
+          $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
+          $clientSecret = "$(PowerBIClientSecret)"  # Stored as a secret variable in Azure DevOps
 
-          # Use MSAL to acquire a token interactively
-          $authResult = Get-MsalToken -ClientId $clientId -TenantId $tenantId -RedirectUri $redirectUri -Scopes "https://analysis.windows.net/powerbi/api/.default" -Interactive
+          Connect-PowerBIServiceAccount -ServicePrincipal -TenantId $tenantId -ClientId $clientId -ClientSecret $clientSecret
 
-          # Connect to Power BI Service
-          Connect-PowerBIServiceAccount -AccessToken $authResult.AccessToken
+          # Deploy the report
+          $workspaceId = "9e99227a-0de6-4073-b18c-e55f85246632"  # Prod Workspace ID
+          $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportProd.pbix"
+          $reportName = "Real Estate Report Prod"
 
-          # Deploy Power BI report to Prod
-          $workspaceId = "$(9e99227a-0de6-4073-b18c-e55f85246632)"
-          $reportFilePath = "$(Build.SourcesDirectory)\RealEstateReportProd.pbix"
-          Import-PowerBIReport -WorkspaceId $workspaceId -Path $reportFilePath -Name "Real Estate Report Prod"
+          Write-Host "Deploying Power BI report..."
+          New-PowerBIReport -WorkspaceId $workspaceId -Path $reportPath -Name $reportName
+          Write-Host "Deployment to Prod completed successfully."
