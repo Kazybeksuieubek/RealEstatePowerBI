@@ -2,7 +2,7 @@ trigger:
 - main
 
 variables:
-- group: PowerBISecrets  # 🔹 Links the Variable Group containing PowerBIClientSecret
+- group: PowerBISecrets  # 🔹 Links Variable Group containing PowerBIClientSecret
 
 stages:
 - stage: Dev
@@ -36,12 +36,16 @@ stages:
 
           Write-Host "✅ PowerBIClientSecret successfully retrieved."
 
-          # Authenticate with Power BI
+          # Authenticate with Power BI using Service Principal
           $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
           $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
           
+          Write-Host "🔑 Creating credential object for authentication..."
+          $securePassword = ConvertTo-SecureString $clientSecret -AsPlainText -Force
+          $credential = New-Object System.Management.Automation.PSCredential ($clientId, $securePassword)
+
           Write-Host "🔑 Logging into Power BI..."
-          Connect-PowerBIServiceAccount -ServicePrincipal -TenantId $tenantId -ClientId $clientId -ClientSecret $clientSecret
+          Connect-PowerBIServiceAccount -Tenant $tenantId -ApplicationId $clientId -Credential $credential
 
           # Deploy the report
           $workspaceId = "7af6f710-e8b3-4fd6-98a1-ad4844254733"  # Dev Workspace ID
@@ -88,8 +92,12 @@ stages:
           $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
           $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
 
+          Write-Host "🔑 Creating credential object for authentication..."
+          $securePassword = ConvertTo-SecureString $clientSecret -AsPlainText -Force
+          $credential = New-Object System.Management.Automation.PSCredential ($clientId, $securePassword)
+
           Write-Host "🔑 Logging into Power BI..."
-          Connect-PowerBIServiceAccount -ServicePrincipal -TenantId $tenantId -ClientId $clientId -ClientSecret $clientSecret
+          Connect-PowerBIServiceAccount -Tenant $tenantId -ApplicationId $clientId -Credential $credential
 
           $workspaceId = "8903b2fd-67f8-4191-b2c4-f9687ee3fd17"  # QA Workspace ID
           $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportQA.pbix"
@@ -135,8 +143,12 @@ stages:
           $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
           $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
 
+          Write-Host "🔑 Creating credential object for authentication..."
+          $securePassword = ConvertTo-SecureString $clientSecret -AsPlainText -Force
+          $credential = New-Object System.Management.Automation.PSCredential ($clientId, $securePassword)
+
           Write-Host "🔑 Logging into Power BI..."
-          Connect-PowerBIServiceAccount -ServicePrincipal -TenantId $tenantId -ClientId $clientId -ClientSecret $clientSecret
+          Connect-PowerBIServiceAccount -Tenant $tenantId -ApplicationId $clientId -Credential $credential
 
           $workspaceId = "9e99227a-0de6-4073-b18c-e55f85246632"  # Prod Workspace ID
           $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportProd.pbix"
