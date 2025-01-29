@@ -15,14 +15,25 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          # Install Power BI PowerShell module if not already installed
-          Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber
+          Write-Host "Starting deployment to Dev..."
+
+          # Install Power BI PowerShell module if not installed
+          if (!(Get-Module -ListAvailable -Name MicrosoftPowerBIMgmt)) {
+              Write-Host "Installing Power BI PowerShell module..."
+              Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber -Confirm:$false
+          }
 
           # Log in to Power BI Service
           $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
           $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
-          $clientSecret = "$(PowerBIClientSecret)"  # Stored as a secret variable in Azure DevOps
-          
+          $clientSecret = "$env:PowerBIClientSecret"
+
+          if ([string]::IsNullOrEmpty($clientSecret)) {
+              Write-Error "❌ PowerBIClientSecret is empty or missing!"
+              exit 1
+          }
+
+          Write-Host "Logging into Power BI Service..."
           Connect-PowerBIServiceAccount -ServicePrincipal -TenantId $tenantId -ClientId $clientId -ClientSecret $clientSecret
 
           # Deploy the report
@@ -30,9 +41,11 @@ stages:
           $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportDev.pbix"
           $reportName = "Real Estate Report Dev"
 
-          Write-Host "Deploying Power BI report..."
+          Write-Host "Deploying Power BI report to Dev..."
           New-PowerBIReport -WorkspaceId $workspaceId -Path $reportPath -Name $reportName
-          Write-Host "Deployment to Dev completed successfully."
+          Write-Host "✅ Deployment to Dev completed successfully."
+      env:
+        PowerBIClientSecret: $(PowerBIClientSecret)  # Ensure the secret is available
 
 - stage: QA
   displayName: 'Deploy to QA'
@@ -49,14 +62,25 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          # Install Power BI PowerShell module if not already installed
-          Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber
+          Write-Host "Starting deployment to QA..."
+
+          # Install Power BI PowerShell module if not installed
+          if (!(Get-Module -ListAvailable -Name MicrosoftPowerBIMgmt)) {
+              Write-Host "Installing Power BI PowerShell module..."
+              Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber -Confirm:$false
+          }
 
           # Log in to Power BI Service
           $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
           $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
-          $clientSecret = "$(PowerBIClientSecret)"  # Stored as a secret variable in Azure DevOps
+          $clientSecret = "$env:PowerBIClientSecret"
 
+          if ([string]::IsNullOrEmpty($clientSecret)) {
+              Write-Error "❌ PowerBIClientSecret is empty or missing!"
+              exit 1
+          }
+
+          Write-Host "Logging into Power BI Service..."
           Connect-PowerBIServiceAccount -ServicePrincipal -TenantId $tenantId -ClientId $clientId -ClientSecret $clientSecret
 
           # Deploy the report
@@ -64,9 +88,11 @@ stages:
           $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportQA.pbix"
           $reportName = "Real Estate Report QA"
 
-          Write-Host "Deploying Power BI report..."
+          Write-Host "Deploying Power BI report to QA..."
           New-PowerBIReport -WorkspaceId $workspaceId -Path $reportPath -Name $reportName
-          Write-Host "Deployment to QA completed successfully."
+          Write-Host "✅ Deployment to QA completed successfully."
+      env:
+        PowerBIClientSecret: $(PowerBIClientSecret)
 
 - stage: Prod
   displayName: 'Deploy to Prod'
@@ -83,14 +109,25 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          # Install Power BI PowerShell module if not already installed
-          Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber
+          Write-Host "Starting deployment to Prod..."
+
+          # Install Power BI PowerShell module if not installed
+          if (!(Get-Module -ListAvailable -Name MicrosoftPowerBIMgmt)) {
+              Write-Host "Installing Power BI PowerShell module..."
+              Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber -Confirm:$false
+          }
 
           # Log in to Power BI Service
           $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
           $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
-          $clientSecret = "$(PowerBIClientSecret)"  # Stored as a secret variable in Azure DevOps
+          $clientSecret = "$env:PowerBIClientSecret"
 
+          if ([string]::IsNullOrEmpty($clientSecret)) {
+              Write-Error "❌ PowerBIClientSecret is empty or missing!"
+              exit 1
+          }
+
+          Write-Host "Logging into Power BI Service..."
           Connect-PowerBIServiceAccount -ServicePrincipal -TenantId $tenantId -ClientId $clientId -ClientSecret $clientSecret
 
           # Deploy the report
@@ -98,6 +135,8 @@ stages:
           $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportProd.pbix"
           $reportName = "Real Estate Report Prod"
 
-          Write-Host "Deploying Power BI report..."
+          Write-Host "Deploying Power BI report to Prod..."
           New-PowerBIReport -WorkspaceId $workspaceId -Path $reportPath -Name $reportName
-          Write-Host "Deployment to Prod completed successfully."
+          Write-Host "✅ Deployment to Prod completed successfully."
+      env:
+        PowerBIClientSecret: $(PowerBIClientSecret)
