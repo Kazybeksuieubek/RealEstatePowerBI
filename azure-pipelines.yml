@@ -20,10 +20,24 @@ stages:
           # Install Power BI PowerShell module if not already installed
           Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber
 
-          # Log in to Power BI Service using Device Authentication (Requires Manual Code Entry)
-          Write-Host "🔑 Logging into Power BI..."
-          Connect-PowerBIServiceAccount
-          
+          # Force Interactive Login
+          Write-Host "🔑 Opening browser for Power BI authentication..."
+          Start-Process "https://app.powerbi.com" -WindowStyle Maximized
+
+          # Wait for the user to manually authenticate
+          Start-Sleep -Seconds 30
+
+          # Check if authentication is successful
+          Write-Host "🔑 Checking authentication status..."
+          try {
+            Connect-PowerBIServiceAccount
+            Write-Host "✅ Successfully authenticated."
+          }
+          catch {
+            Write-Host "❌ Authentication failed."
+            exit 1
+          }
+
           # Deploy the report
           $workspaceId = "7af6f710-e8b3-4fd6-98a1-ad4844254733"  # Dev Workspace ID
           $reportPath = "$(Build.SourcesDirectory)/Reports/RealEstateReportDev.pbix"
@@ -53,10 +67,24 @@ stages:
           # Install Power BI PowerShell module if not already installed
           Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber
 
-          # Log in to Power BI Service using Device Authentication (Requires Manual Code Entry)
-          Write-Host "🔑 Logging into Power BI..."
-          Connect-PowerBIServiceAccount
-          
+          # Force Interactive Login
+          Write-Host "🔑 Opening browser for Power BI authentication..."
+          Start-Process "https://app.powerbi.com" -WindowStyle Maximized
+
+          # Wait for the user to manually authenticate
+          Start-Sleep -Seconds 30
+
+          # Check if authentication is successful
+          Write-Host "🔑 Checking authentication status..."
+          try {
+            Connect-PowerBIServiceAccount
+            Write-Host "✅ Successfully authenticated."
+          }
+          catch {
+            Write-Host "❌ Authentication failed."
+            exit 1
+          }
+
           # Deploy the report
           $workspaceId = "8903b2fd-67f8-4191-b2c4-f9687ee3fd17"  # QA Workspace ID
           $reportPath = "$(Build.SourcesDirectory)/Reports/RealEstateReportQA.pbix"
@@ -86,10 +114,24 @@ stages:
           # Install Power BI PowerShell module if not already installed
           Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber
 
-          # Log in to Power BI Service using Device Authentication (Requires Manual Code Entry)
-          Write-Host "🔑 Logging into Power BI..."
-          Connect-PowerBIServiceAccount
-          
+          # Force Interactive Login
+          Write-Host "🔑 Opening browser for Power BI authentication..."
+          Start-Process "https://app.powerbi.com" -WindowStyle Maximized
+
+          # Wait for the user to manually authenticate
+          Start-Sleep -Seconds 30
+
+          # Check if authentication is successful
+          Write-Host "🔑 Checking authentication status..."
+          try {
+            Connect-PowerBIServiceAccount
+            Write-Host "✅ Successfully authenticated."
+          }
+          catch {
+            Write-Host "❌ Authentication failed."
+            exit 1
+          }
+
           # Deploy the report
           $workspaceId = "9e99227a-0de6-4073-b18c-e55f85246632"  # Prod Workspace ID
           $reportPath = "$(Build.SourcesDirectory)/Reports/RealEstateReportProd.pbix"
