@@ -49,7 +49,7 @@ stages:
 
           # Set the correct file path from the checked-out repository
           $workspaceId = "7af6f710-e8b3-4fd6-98a1-ad4844254733"  # Dev Workspace ID
-          $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportDev.pbix"
+          $reportPath = "$(System.DefaultWorkingDirectory)/s/Reports/RealEstateReportDev.pbix"
           $reportName = "Real Estate Report Dev"
 
           # Validate if the file exists before deploying
@@ -106,7 +106,7 @@ stages:
           Connect-PowerBIServiceAccount -ServicePrincipal -Credential $credential -TenantId $tenantId
 
           $workspaceId = "8903b2fd-67f8-4191-b2c4-f9687ee3fd17"  # QA Workspace ID
-          $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportQA.pbix"
+          $reportPath = "$(System.DefaultWorkingDirectory)/s/Reports/RealEstateReportQA.pbix"
           $reportName = "Real Estate Report QA"
 
           if (!(Test-Path $reportPath)) {
@@ -162,7 +162,7 @@ stages:
           Connect-PowerBIServiceAccount -ServicePrincipal -Credential $credential -TenantId $tenantId
 
           $workspaceId = "9e99227a-0de6-4073-b18c-e55f85246632"  # Prod Workspace ID
-          $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportProd.pbix"
+          $reportPath = "$(System.DefaultWorkingDirectory)/s/Reports/RealEstateReportProd.pbix"
           $reportName = "Real Estate Report Prod"
 
           if (!(Test-Path $reportPath)) {
