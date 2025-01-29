@@ -13,7 +13,7 @@ stages:
     pool:
       name: PPAgent
     steps:
-    - checkout: self
+    - checkout: self  # ✅ Ensures repo is pulled from GitHub
     - task: PowerShell@2
       inputs:
         targetType: 'inline'
@@ -47,10 +47,16 @@ stages:
           Write-Host "🔑 Logging into Power BI..."
           Connect-PowerBIServiceAccount -ServicePrincipal -Credential $credential -TenantId $tenantId
 
-          # Deploy the report
+          # Set the correct file path from the checked-out repository
           $workspaceId = "7af6f710-e8b3-4fd6-98a1-ad4844254733"  # Dev Workspace ID
-          $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportDev.pbix"
+          $reportPath = "$(System.DefaultWorkingDirectory)/s/Reports/RealEstateReportDev.pbix"
           $reportName = "Real Estate Report Dev"
+
+          # Validate if the file exists before deploying
+          if (!(Test-Path $reportPath)) {
+              Write-Error "❌ ERROR: Power BI report file not found at path: $reportPath"
+              exit 1
+          }
 
           Write-Host "📤 Deploying Power BI report to Dev..."
           New-PowerBIReport -WorkspaceId $workspaceId -Path $reportPath -Name $reportName
@@ -100,8 +106,13 @@ stages:
           Connect-PowerBIServiceAccount -ServicePrincipal -Credential $credential -TenantId $tenantId
 
           $workspaceId = "8903b2fd-67f8-4191-b2c4-f9687ee3fd17"  # QA Workspace ID
-          $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportQA.pbix"
+          $reportPath = "$(System.DefaultWorkingDirectory)/s/Reports/RealEstateReportQA.pbix"
           $reportName = "Real Estate Report QA"
+
+          if (!(Test-Path $reportPath)) {
+              Write-Error "❌ ERROR: Power BI report file not found at path: $reportPath"
+              exit 1
+          }
 
           Write-Host "📤 Deploying Power BI report to QA..."
           New-PowerBIReport -WorkspaceId $workspaceId -Path $reportPath -Name $reportName
@@ -151,8 +162,13 @@ stages:
           Connect-PowerBIServiceAccount -ServicePrincipal -Credential $credential -TenantId $tenantId
 
           $workspaceId = "9e99227a-0de6-4073-b18c-e55f85246632"  # Prod Workspace ID
-          $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportProd.pbix"
+          $reportPath = "$(System.DefaultWorkingDirectory)/s/Reports/RealEstateReportProd.pbix"
           $reportName = "Real Estate Report Prod"
+
+          if (!(Test-Path $reportPath)) {
+              Write-Error "❌ ERROR: Power BI report file not found at path: $reportPath"
+              exit 1
+          }
 
           Write-Host "📤 Deploying Power BI report to Prod..."
           New-PowerBIReport -WorkspaceId $workspaceId -Path $reportPath -Name $reportName
