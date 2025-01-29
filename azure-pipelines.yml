@@ -1,6 +1,9 @@
 trigger:
 - main
 
+variables:
+- group: PowerBISecrets  # 🔹 Links the Variable Group containing PowerBIClientSecret
+
 stages:
 - stage: Dev
   displayName: 'Deploy to Dev'
@@ -8,24 +11,22 @@ stages:
   - job: DeployDev
     displayName: 'Deploy Report to Dev Workspace'
     pool:
-      name: PPAgent  # Use the self-hosted agent instead of 'vmImage'
+      name: PPAgent
     steps:
     - checkout: self
     - task: PowerShell@2
       inputs:
         targetType: 'inline'
         script: |
-          Write-Host "Starting deployment to Dev..."
+          Write-Host "🔹 Starting deployment to Dev..."
 
           # Install Power BI PowerShell module if not installed
           if (!(Get-Module -ListAvailable -Name MicrosoftPowerBIMgmt)) {
-              Write-Host "Installing Power BI PowerShell module..."
+              Write-Host "⚙️ Installing Power BI PowerShell module..."
               Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber -Confirm:$false
           }
 
-          # Log in to Power BI Service
-          $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
-          $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
+          # Retrieve and validate Power BI Client Secret
           $clientSecret = "$env:PowerBIClientSecret"
 
           if ([string]::IsNullOrEmpty($clientSecret)) {
@@ -33,7 +34,13 @@ stages:
               exit 1
           }
 
-          Write-Host "Logging into Power BI Service..."
+          Write-Host "✅ PowerBIClientSecret successfully retrieved."
+
+          # Authenticate with Power BI
+          $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
+          $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
+          
+          Write-Host "🔑 Logging into Power BI..."
           Connect-PowerBIServiceAccount -ServicePrincipal -TenantId $tenantId -ClientId $clientId -ClientSecret $clientSecret
 
           # Deploy the report
@@ -41,11 +48,11 @@ stages:
           $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportDev.pbix"
           $reportName = "Real Estate Report Dev"
 
-          Write-Host "Deploying Power BI report to Dev..."
+          Write-Host "📤 Deploying Power BI report to Dev..."
           New-PowerBIReport -WorkspaceId $workspaceId -Path $reportPath -Name $reportName
           Write-Host "✅ Deployment to Dev completed successfully."
       env:
-        PowerBIClientSecret: $(PowerBIClientSecret)  # Ensure the secret is available
+        PowerBIClientSecret: $(PowerBIClientSecret)
 
 - stage: QA
   displayName: 'Deploy to QA'
@@ -55,24 +62,20 @@ stages:
   - job: DeployQA
     displayName: 'Deploy Report to QA Workspace'
     pool:
-      name: PPAgent  # Use the self-hosted agent
+      name: PPAgent
     steps:
     - checkout: self
     - task: PowerShell@2
       inputs:
         targetType: 'inline'
         script: |
-          Write-Host "Starting deployment to QA..."
+          Write-Host "🔹 Starting deployment to QA..."
 
-          # Install Power BI PowerShell module if not installed
           if (!(Get-Module -ListAvailable -Name MicrosoftPowerBIMgmt)) {
-              Write-Host "Installing Power BI PowerShell module..."
+              Write-Host "⚙️ Installing Power BI PowerShell module..."
               Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber -Confirm:$false
           }
 
-          # Log in to Power BI Service
-          $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
-          $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
           $clientSecret = "$env:PowerBIClientSecret"
 
           if ([string]::IsNullOrEmpty($clientSecret)) {
@@ -80,15 +83,19 @@ stages:
               exit 1
           }
 
-          Write-Host "Logging into Power BI Service..."
+          Write-Host "✅ PowerBIClientSecret successfully retrieved."
+
+          $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
+          $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
+
+          Write-Host "🔑 Logging into Power BI..."
           Connect-PowerBIServiceAccount -ServicePrincipal -TenantId $tenantId -ClientId $clientId -ClientSecret $clientSecret
 
-          # Deploy the report
           $workspaceId = "8903b2fd-67f8-4191-b2c4-f9687ee3fd17"  # QA Workspace ID
           $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportQA.pbix"
           $reportName = "Real Estate Report QA"
 
-          Write-Host "Deploying Power BI report to QA..."
+          Write-Host "📤 Deploying Power BI report to QA..."
           New-PowerBIReport -WorkspaceId $workspaceId -Path $reportPath -Name $reportName
           Write-Host "✅ Deployment to QA completed successfully."
       env:
@@ -102,24 +109,20 @@ stages:
   - job: DeployProd
     displayName: 'Deploy Report to Prod Workspace'
     pool:
-      name: PPAgent  # Use the self-hosted agent
+      name: PPAgent
     steps:
     - checkout: self
     - task: PowerShell@2
       inputs:
         targetType: 'inline'
         script: |
-          Write-Host "Starting deployment to Prod..."
+          Write-Host "🔹 Starting deployment to Prod..."
 
-          # Install Power BI PowerShell module if not installed
           if (!(Get-Module -ListAvailable -Name MicrosoftPowerBIMgmt)) {
-              Write-Host "Installing Power BI PowerShell module..."
+              Write-Host "⚙️ Installing Power BI PowerShell module..."
               Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber -Confirm:$false
           }
 
-          # Log in to Power BI Service
-          $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
-          $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
           $clientSecret = "$env:PowerBIClientSecret"
 
           if ([string]::IsNullOrEmpty($clientSecret)) {
@@ -127,15 +130,19 @@ stages:
               exit 1
           }
 
-          Write-Host "Logging into Power BI Service..."
+          Write-Host "✅ PowerBIClientSecret successfully retrieved."
+
+          $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
+          $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
+
+          Write-Host "🔑 Logging into Power BI..."
           Connect-PowerBIServiceAccount -ServicePrincipal -TenantId $tenantId -ClientId $clientId -ClientSecret $clientSecret
 
-          # Deploy the report
           $workspaceId = "9e99227a-0de6-4073-b18c-e55f85246632"  # Prod Workspace ID
           $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportProd.pbix"
           $reportName = "Real Estate Report Prod"
 
-          Write-Host "Deploying Power BI report to Prod..."
+          Write-Host "📤 Deploying Power BI report to Prod..."
           New-PowerBIReport -WorkspaceId $workspaceId -Path $reportPath -Name $reportName
           Write-Host "✅ Deployment to Prod completed successfully."
       env:
