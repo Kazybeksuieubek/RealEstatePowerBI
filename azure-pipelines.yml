@@ -1,9 +1,6 @@
 trigger:
 - main
 
-variables:
-- group: PowerBISecrets  # 🔹 Links Variable Group containing PowerBIClientSecret
-
 stages:
 - stage: Dev
   displayName: 'Deploy to Dev'
@@ -11,58 +8,30 @@ stages:
   - job: DeployDev
     displayName: 'Deploy Report to Dev Workspace'
     pool:
-      name: PPAgent
+      name: PPAgent  # Using the self-hosted agent
     steps:
-    - checkout: self  # ✅ Ensures repo is pulled from GitHub
+    - checkout: self
     - task: PowerShell@2
       inputs:
         targetType: 'inline'
         script: |
           Write-Host "🔹 Starting deployment to Dev..."
 
-          # Install Power BI PowerShell module if not installed
-          if (!(Get-Module -ListAvailable -Name MicrosoftPowerBIMgmt)) {
-              Write-Host "⚙️ Installing Power BI PowerShell module..."
-              Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber -Confirm:$false
-          }
+          # Install Power BI PowerShell module if not already installed
+          Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber
 
-          # Retrieve and validate Power BI Client Secret
-          $clientSecret = "$env:PowerBIClientSecret"
-
-          if ([string]::IsNullOrEmpty($clientSecret)) {
-              Write-Error "❌ PowerBIClientSecret is empty or missing!"
-              exit 1
-          }
-
-          Write-Host "✅ PowerBIClientSecret successfully retrieved."
-
-          # Authenticate with Power BI using Service Principal
-          $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
-          $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
-          
-          Write-Host "🔑 Creating credential object for authentication..."
-          $securePassword = ConvertTo-SecureString $clientSecret -AsPlainText -Force
-          $credential = New-Object System.Management.Automation.PSCredential ($clientId, $securePassword)
-
+          # Log in to Power BI Service using Interactive Authentication
           Write-Host "🔑 Logging into Power BI..."
-          Connect-PowerBIServiceAccount -ServicePrincipal -Credential $credential -TenantId $tenantId
+          Login-PowerBIServiceAccount
 
-          # Set the correct file path from the checked-out repository
+          # Deploy the report
           $workspaceId = "7af6f710-e8b3-4fd6-98a1-ad4844254733"  # Dev Workspace ID
-          $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportDev.pbix"
+          $reportPath = "$(Build.SourcesDirectory)/Reports/RealEstateReportDev.pbix"
           $reportName = "Real Estate Report Dev"
-
-          # Validate if the file exists before deploying
-          if (!(Test-Path $reportPath)) {
-              Write-Error "❌ ERROR: Power BI report file not found at path: $reportPath"
-              exit 1
-          }
 
           Write-Host "📤 Deploying Power BI report to Dev..."
           New-PowerBIReport -WorkspaceId $workspaceId -Path $reportPath -Name $reportName
           Write-Host "✅ Deployment to Dev completed successfully."
-      env:
-        PowerBIClientSecret: $(PowerBIClientSecret)
 
 - stage: QA
   displayName: 'Deploy to QA'
@@ -72,7 +41,7 @@ stages:
   - job: DeployQA
     displayName: 'Deploy Report to QA Workspace'
     pool:
-      name: PPAgent
+      name: PPAgent  # Using the self-hosted agent
     steps:
     - checkout: self
     - task: PowerShell@2
@@ -81,44 +50,21 @@ stages:
         script: |
           Write-Host "🔹 Starting deployment to QA..."
 
-          if (!(Get-Module -ListAvailable -Name MicrosoftPowerBIMgmt)) {
-              Write-Host "⚙️ Installing Power BI PowerShell module..."
-              Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber -Confirm:$false
-          }
+          # Install Power BI PowerShell module if not already installed
+          Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber
 
-          $clientSecret = "$env:PowerBIClientSecret"
-
-          if ([string]::IsNullOrEmpty($clientSecret)) {
-              Write-Error "❌ PowerBIClientSecret is empty or missing!"
-              exit 1
-          }
-
-          Write-Host "✅ PowerBIClientSecret successfully retrieved."
-
-          $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
-          $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
-
-          Write-Host "🔑 Creating credential object for authentication..."
-          $securePassword = ConvertTo-SecureString $clientSecret -AsPlainText -Force
-          $credential = New-Object System.Management.Automation.PSCredential ($clientId, $securePassword)
-
+          # Log in to Power BI Service using Interactive Authentication
           Write-Host "🔑 Logging into Power BI..."
-          Connect-PowerBIServiceAccount -ServicePrincipal -Credential $credential -TenantId $tenantId
+          Login-PowerBIServiceAccount
 
+          # Deploy the report
           $workspaceId = "8903b2fd-67f8-4191-b2c4-f9687ee3fd17"  # QA Workspace ID
-          $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportQA.pbix"
+          $reportPath = "$(Build.SourcesDirectory)/Reports/RealEstateReportQA.pbix"
           $reportName = "Real Estate Report QA"
-
-          if (!(Test-Path $reportPath)) {
-              Write-Error "❌ ERROR: Power BI report file not found at path: $reportPath"
-              exit 1
-          }
 
           Write-Host "📤 Deploying Power BI report to QA..."
           New-PowerBIReport -WorkspaceId $workspaceId -Path $reportPath -Name $reportName
           Write-Host "✅ Deployment to QA completed successfully."
-      env:
-        PowerBIClientSecret: $(PowerBIClientSecret)
 
 - stage: Prod
   displayName: 'Deploy to Prod'
@@ -128,7 +74,7 @@ stages:
   - job: DeployProd
     displayName: 'Deploy Report to Prod Workspace'
     pool:
-      name: PPAgent
+      name: PPAgent  # Using the self-hosted agent
     steps:
     - checkout: self
     - task: PowerShell@2
@@ -137,41 +83,18 @@ stages:
         script: |
           Write-Host "🔹 Starting deployment to Prod..."
 
-          if (!(Get-Module -ListAvailable -Name MicrosoftPowerBIMgmt)) {
-              Write-Host "⚙️ Installing Power BI PowerShell module..."
-              Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber -Confirm:$false
-          }
+          # Install Power BI PowerShell module if not already installed
+          Install-Module -Name MicrosoftPowerBIMgmt -Scope CurrentUser -Force -AllowClobber
 
-          $clientSecret = "$env:PowerBIClientSecret"
-
-          if ([string]::IsNullOrEmpty($clientSecret)) {
-              Write-Error "❌ PowerBIClientSecret is empty or missing!"
-              exit 1
-          }
-
-          Write-Host "✅ PowerBIClientSecret successfully retrieved."
-
-          $tenantId = "b41b72d0-4e9f-4c26-8a69-f949f367c91d"
-          $clientId = "786263df-9ecf-4ecd-b109-a8cefd1173e2"
-
-          Write-Host "🔑 Creating credential object for authentication..."
-          $securePassword = ConvertTo-SecureString $clientSecret -AsPlainText -Force
-          $credential = New-Object System.Management.Automation.PSCredential ($clientId, $securePassword)
-
+          # Log in to Power BI Service using Interactive Authentication
           Write-Host "🔑 Logging into Power BI..."
-          Connect-PowerBIServiceAccount -ServicePrincipal -Credential $credential -TenantId $tenantId
+          Login-PowerBIServiceAccount
 
+          # Deploy the report
           $workspaceId = "9e99227a-0de6-4073-b18c-e55f85246632"  # Prod Workspace ID
-          $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportProd.pbix"
+          $reportPath = "$(Build.SourcesDirectory)/Reports/RealEstateReportProd.pbix"
           $reportName = "Real Estate Report Prod"
-
-          if (!(Test-Path $reportPath)) {
-              Write-Error "❌ ERROR: Power BI report file not found at path: $reportPath"
-              exit 1
-          }
 
           Write-Host "📤 Deploying Power BI report to Prod..."
           New-PowerBIReport -WorkspaceId $workspaceId -Path $reportPath -Name $reportName
           Write-Host "✅ Deployment to Prod completed successfully."
-      env:
-        PowerBIClientSecret: $(PowerBIClientSecret)
