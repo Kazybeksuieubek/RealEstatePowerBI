@@ -45,7 +45,7 @@ stages:
           $credential = New-Object System.Management.Automation.PSCredential ($clientId, $securePassword)
 
           Write-Host "🔑 Logging into Power BI..."
-          Connect-PowerBIServiceAccount -Tenant $tenantId -ApplicationId $clientId -Credential $credential
+          Connect-PowerBIServiceAccount -ServicePrincipal -Credential $credential -TenantId $tenantId
 
           # Deploy the report
           $workspaceId = "7af6f710-e8b3-4fd6-98a1-ad4844254733"  # Dev Workspace ID
@@ -97,7 +97,7 @@ stages:
           $credential = New-Object System.Management.Automation.PSCredential ($clientId, $securePassword)
 
           Write-Host "🔑 Logging into Power BI..."
-          Connect-PowerBIServiceAccount -Tenant $tenantId -ApplicationId $clientId -Credential $credential
+          Connect-PowerBIServiceAccount -ServicePrincipal -Credential $credential -TenantId $tenantId
 
           $workspaceId = "8903b2fd-67f8-4191-b2c4-f9687ee3fd17"  # QA Workspace ID
           $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportQA.pbix"
@@ -148,7 +148,7 @@ stages:
           $credential = New-Object System.Management.Automation.PSCredential ($clientId, $securePassword)
 
           Write-Host "🔑 Logging into Power BI..."
-          Connect-PowerBIServiceAccount -Tenant $tenantId -ApplicationId $clientId -Credential $credential
+          Connect-PowerBIServiceAccount -ServicePrincipal -Credential $credential -TenantId $tenantId
 
           $workspaceId = "9e99227a-0de6-4073-b18c-e55f85246632"  # Prod Workspace ID
           $reportPath = "$(System.DefaultWorkingDirectory)/Reports/RealEstateReportProd.pbix"
