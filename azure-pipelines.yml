@@ -8,7 +8,7 @@ stages:
   - job: DeployDev
     displayName: 'Deploy Report to Dev Workspace'
     pool:
-      vmImage: 'windows-latest'
+      name: PPAgent  # Use the self-hosted agent instead of 'vmImage'
     steps:
     - task: PowerShell@2
       inputs:
@@ -41,7 +41,7 @@ stages:
   - job: DeployQA
     displayName: 'Deploy Report to QA Workspace'
     pool:
-      vmImage: 'windows-latest'
+      name: PPAgent  # Use the self-hosted agent
     steps:
     - task: PowerShell@2
       inputs:
@@ -74,7 +74,7 @@ stages:
   - job: DeployProd
     displayName: 'Deploy Report to Prod Workspace'
     pool:
-      vmImage: 'windows-latest'
+      name: PPAgent  # Use the self-hosted agent
     steps:
     - task: PowerShell@2
       inputs:
